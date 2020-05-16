@@ -1,13 +1,8 @@
 const express = require('express');
 
-const path = require('path');
-
 const mongoose = require('mongoose');
 
-const cards = require('./routes/cards');
-
-const users = require('./routes/users');
-
+const bodyParser = require('body-parser');
 
 const {
   PORT = 3000,
@@ -15,6 +10,9 @@ const {
 
 
 const app = express();
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
@@ -24,8 +22,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 });
 
 
-app.use('/', cards);
-app.use('/', users);
+app.use('/users', require('./routes/users'));
+
 
 app.get('*', (req, res) => {
   res.status(404).send({
