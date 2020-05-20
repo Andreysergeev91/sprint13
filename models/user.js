@@ -1,5 +1,14 @@
 const mongoose = require('mongoose');
 
+const validate = require('mongoose-validator');
+
+const avatarLinkValidator = [
+  validate({
+    validator: 'isURL',
+    message: 'There should be a link in this field'
+  })
+];
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -9,11 +18,14 @@ const userSchema = new mongoose.Schema({
   },
   about: {
     type: String,
+    minlength: 2,
+    maxlength: 30,
     required: true
   },
   avatar: {
     type: String,
-    required: true
+    required: true,
+    validate: avatarLinkValidator
   }
 });
 
