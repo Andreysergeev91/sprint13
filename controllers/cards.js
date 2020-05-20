@@ -8,13 +8,31 @@ module.exports.getCards = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then(() => res.send({ message: `Карточка ${req.params.cardId} успешно удалена` }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .then((card) => {
+      if (card == null) {
+        res.status(404).send({ message: 'Карточка с данным Id не найдена' });
+      } else {
+        res.send({ data: card });
+      }
+    })
+    .catch((err, card) => {
+      if (card == null) {
+        res.status(404).send({ message: 'Карточка с данным Id не найдена' });
+      } else {
+        res.status(500).send({ message: err.message });
+      }
+    });
 };
 
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send({ data: card }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: err.message });
+      } else {
+        res.status(500).send({ message: err.message });
+      }
+    });
 };
