@@ -1,21 +1,30 @@
+const mongoose = require('mongoose');
 const User = require('../models/user');
+const { checkLinkValidation } = require('./errorLinkValidation');
+
 
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(500).send({ data: err.message }));
 };
 
 module.exports.getUsersById = (req, res) => {
-  User.findById(req.params.userId)
-    .then((user) => res.send({ data: user }))
-    .catch((err, user) => {
-      if (user == null) {
-        res.status(404).send({ message: 'Пользователь с данным Id не найден' });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
+  if (mongoose.Types.ObjectId.isValid(req.params.userId)) {
+    User.findById(req.params.userId)
+      .then((user) => {
+        if (user == null) {
+          res.status(404).send({ data: 'Пользователь с данным Id не найден' });
+        } else {
+          res.send({ data: user });
+        }
+      })
+      .catch((err) => {
+        res.status(500).send({ data: err.message });
+      });
+  } else {
+    res.status(400).send({ data: 'Введен некорректный id' });
+  }
 };
 
 module.exports.createUser = (req, res) => {
@@ -23,11 +32,5 @@ module.exports.createUser = (req, res) => {
 
   User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
+    .catch((err) => checkLinkValidation(res, err));
 };
